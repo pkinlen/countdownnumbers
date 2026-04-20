@@ -360,8 +360,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
       
        for ( let i = 0 ; i < 6 ; i++){
          
-          var elmID = "cdInput" + i;
-         
+          var elmID = "cdInput" + i;         
           var res   = getCDInput(elmID)
           
           if (res[0])
@@ -371,7 +370,11 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
                   
        }   
 
-       g_cdTarget      = text2NumCD(document.getElementById("cdTarget").value);
+       var tar   = getCDInput("cdTarget");
+       if (tar[0])
+	       g_cdTarget      = tar[1];
+       else 
+           return false;
       
        return true;
 
