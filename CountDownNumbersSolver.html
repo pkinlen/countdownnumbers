@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <!--  TODO:         
+         blog was not rendering well when viewed with the other articles in safari
+              that was possibly caused by the delay in loading many formulae.
+
+         could reduce the use of global variables
+
+    -->
+
+
+<head>
+  <meta charset="UTF-8">
+  <title>Countdown Numbers Game</title>
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    input {
+      width: 60px;
+      margin: 5px;
+    }
+
+    button {
+      margin-left: 10px;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+<body>
+
+
+  <div>
+This page contains a calculator which finds solutions to the 
+<a href="https://en.wikipedia.org/wiki/Countdown_(game_show)#Numbers_round">
+Countdown Numbers Game</a>.<br/>
+    
+    Numbers to use: <br/>
+    <table>
+        <tr>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput0" value="1" > </td>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput1" value="1" > </td>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput2" value="1" > </td>
+        <tr/>
+        <tr>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput3" value="1"> </td>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput4" value="100"> </td>
+           <td><input type="text" onchange="cdClearOutputs()" id="cdInput5" value="100"> </td>
+          
+        </tr>
+  
+    </table>
+    <br/>
+    Target value <input type="text" onchange="cdClearOutputs()" id="cdTarget" value="404">
+    <br/><br/>
+
+    <button id = "calculateBtn"       onclick = "calcCDSolution()"    > Find Solution     </button>
+    <button id = "setRandomInputsBtn" onclick = "cdSetRandomInputs()" > New Random Inputs </button>
+
+    <br/><br/>
+
+  </div>
+
+  <div id="cd_result" ></div>
+  
+  
+<div>
+If you press the New Random Inputs button above then a new set of random inputs will be generated.<br/>
+<br/>  
+  
+In the Countdown Numbers game, the players are given 6 integers which they need to combined to achieve the target.<br/>
+The numbers are combined using the operations of addition, subtraction, multiplication and division. <br/>
+The inputs, the target and the intermediate results must all be whole numbers.<br/>
+The players don't need to use every number, but they can't use any number more than once. <br/>
+However sometimes not all 6 integers are different. <br/><br/>
+    
+When you click on the "Find Solution" an algorithm writen in Javascript will try to find a solution. <br/>
+
+</div>
+  <script>
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Global variables
+    var g_cdInputs = [0, 1, 2, 3, 4, 5];
+
+    var g_operators = ["add", "sub", "mult", "div"];
+
+    var g_cdTarget;
+    var g_closestNode;
+    var g_minDiff;
+    var g_cdFoundSolution;
+    var g_cdCounter;
+    /////////////////////////////////////////////////////////////////////////////////
+    
+    cdClearOutputs();
+    cdSetRandomInputs();
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // The BaseNodeSet contains the input integers supplied that the player needs to use.
+    class BaseNodeSet{
+       //////////////////////////////////////
+       constructor (vals){
+          if ( vals != null){
+             this.p_nodes = [];
+             console.log("adding vals " + vals.length + " to starting nodes")
+
+             for (let i = 0; i < vals.length; i++) {
+               this.p_nodes.push(new BaseNode(vals[i]));
+             }
+          }
+       }
+       //////////////////////////////////////
+       getNode(i) { return this.p_nodes[i]; }
+       getLen ( ) { return this.p_nodes.length; }   
+       //////////////////////////////////////
+       isValid() { 
+           for ( let i = 0; i < this.p_nodes.length; i++){
+               if ( !(this.p_nodes[i].isValid()) )
+                  return false;
+           }
+           return true;
+       }
+       //////////////////////////////////////
+    }
+    /////////////////////////////////////////////////////////////////////////////////
+    class SetOfNodes extends BaseNodeSet{
+       // Nodes i an j have been paired off using the operator. 
+       constructor ( nodes, i, op, j){
+
+          super(null);
+
+          this.p_nodes = [];
+          for ( let k = 0; k < nodes.getLen(); k++){
+             if ( (k != i) && (k != j) )
+                this.p_nodes.push(nodes.getNode(k));
+             // else skip
+          }
+          this.p_nodes.push( new CDNode( nodes.getNode(i), op, nodes.getNode(j)));
+
+       }
+
+    }
+    /////////////////////////////////////////////////////////////////////////////////
+
+    class BaseNode {
+        //  A base node could consis of 
+        //    p_val     = 50;
+        //    p_str     = "50";
+        //    p_isValid = true
+        
+        /////////////////////////////////////////////////
+        constructor(val) {
+           this.p_val = val;
+           this.p_str = val.toString();
+
+           this.p_isValid = this.checkIsValid(val);
+
+           var diff = Math.abs(val - g_cdTarget);
+          
+           if( this.p_isValid && (diff < g_minDiff )){
+               g_minDiff     = diff;
+               g_closestNode = this;
+     
+               if( diff == 0 ){
+                   g_cdFoundSolution = true;
+
+               }
+
+               console.log("closest node: " + val);
+           }    
+
+        }
+        /////////////////////////////////////////////////
+        checkIsValid(val){ 
+
+           if      (isNaN(val) )              return false;  
+           else if (val == 0 )                return false;  
+           else if (Math.floor(val) == val)   return true;
+           else                               return false;
+          
+        }
+        /////////////////////////////////////////////////
+        val()            {  return this.p_val;     }
+        getStr()         {  return this.p_str;     }
+        isValid()        {  return this.p_isValid; }
+        
+    }        
+    /////////////////////////////////////////////////////////////////////////////////
+    class CDNode extends BaseNode{
+        // CDNode could have: 
+        //    p_val     = 152
+        //    p_str     = "(( 3 * 50 ) + 2)"
+        //    p_isValid = true
+         
+      
+        constructor( N1, op, N2){
+           super(0);
+           ////////////////////////////////////////////////
+           if ( op == "add" ) {
+                this.p_val = N1.val() + N2.val();
+                this.p_str = "(" + N1.getStr() + " + " + N2.getStr() + ")";
+           }
+           else if ( op == "mult" ) {
+                this.p_val = N1.val() * N2.val();
+                this.p_str = "(" + N1.getStr() + " x " + N2.getStr() + ")";
+           }
+           else if ( op == "sub" ) {
+                // we choose the order of the nodes to ensure a positive result
+                // 6 - 4 is fine, 4 - 6 is not
+                if (N1.val() > N2.val()){
+                   this.p_val = N1.val() - N2.val();
+                   this.p_str = "(" + N1.getStr() + " - " + N2.getStr() + ")";
+
+                } else {
+                   this.p_val = N2.val() - N1.val();
+                   this.p_str = "(" + N2.getStr() + " - " + N1.getStr() + ")";
+                }
+           }
+           else if ( op == "div" ) {
+                // Only divisions that yield integers will be deemed to be valid
+                // If we have inputs 4 and 8, then 4 / 8 is rejected for being non integer
+                // 8 / 4 is accepted. Here we check that the left hand input is larger
+                // later we'll check if the result is an integer.
+                if (N1.val() > N2.val()){
+                   this.p_val = N1.val() / N2.val();
+                   this.p_str = "(" + N1.getStr() + " / " + N2.getStr() + ")";
+
+                } else {
+                   this.p_val = N2.val() / N1.val();
+                   this.p_str = "(" + N2.getStr() + " / " + N1.getStr() + ")";
+                }
+           }
+           ////////////////////////////////////////////////
+
+           if ( !(N1.isValid()) || !(N2.isValid()))
+               this.p_isValid = false;
+           else 
+               this.p_isValid = this.checkIsValid(this.p_val);
+
+           if ( this.p_isValid ) {
+               var diff = Math.abs(this.p_val - g_cdTarget);
+
+               if( diff < g_minDiff ){
+                  g_minDiff     = diff;
+                  g_closestNode = this;
+                  
+                  console.log("closest node: " + this.p_str);
+
+                  if( diff == 0 )  g_cdFoundSolution = true;
+             }
+           }    
+        }
+    } 
+    /////////////////////////////////////////////////////////////////////////////////
+    function cdClearOutputs(){
+      console.log("About to clear the outputs.");
+
+      g_cdFoundSolution = false;
+      g_cdCounter     = 0;
+      g_minDiff       = 1e20;
+
+      document.getElementById("cd_result").innerHTML = "If you wish you can change some of the numbers above. <br/>"
+                                                       + "Click on the Find Solution button to get the optimal solution.<br/> <br/>";
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////   
+    function calcCDSolution(){
+
+       cdClearOutputs();
+
+       console.log("In calcCDSolution(), about to read the inputs");
+      
+      
+       if(cdReadInputs()){
+
+         cdShuffle(g_cdInputs);
+
+         console.log("About to do the main calc");
+
+         usingNodesFindSolution(new BaseNodeSet(g_cdInputs));
+
+         cdWriteOutput();
+         console.log("Finished doing the calcCDSolution, used " + g_cdCounter + " interations.");
+       }
+
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    function cdShuffle(array) {
+       let currentIndex = array.length;
+
+        // While there remain elements to shuffle...
+        while (currentIndex != 0) {
+
+          // Pick a remaining element...
+          let randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+
+          // And swap it with the current element.
+          [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // The folloowing function is a little complicated, even though it is not long.
+    // It uses a triple nested for loop and it is recursive!
+    // we pair off two nodes using an operator, then we get the next set of nodes, which has one
+    // fewer nodes. For example, we could pair off nodes with values 10 and 50 using the "add" operator
+    // then those two nodes would be replaced with a node containing 60 = 10 + 50
+    function usingNodesFindSolution(nodes){
+        
+      g_cdCounter++;
+
+      for(     let i = 0;   i < nodes.getLen() - 1 ;   i++) {
+        for(   let j = i+1; j < nodes.getLen();        j++) {
+          for( let p = 0;   p < g_operators.length;    p++) {
+
+              var nextSetOfNodes = new SetOfNodes( nodes, i, g_operators[p], j);
+
+              if ( g_cdFoundSolution){
+                  console.log("found solution, number of iterations: " + g_cdCounter);
+                  return;
+              }
+                
+              if ( nextSetOfNodes.isValid())  
+                  usingNodesFindSolution(nextSetOfNodes);
+           }
+         }
+       }
+    } 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    function cdWriteOutput(){
+       var s;
+
+       var soln;
+         
+       if (g_closestNode.getStr().substring(0,1) == "(" ) // we'll remove the outer brackets.
+             soln = g_closestNode.getStr().substring(1, g_closestNode.getStr().length-1);
+       else 
+             soln = g_closestNode.getStr();
+      
+      
+       if ( g_cdFoundSolution ) {
+         
+         s =   "Found solution <br/>" + g_cdTarget + " = " + soln + "<br/> <br/>"
+             + "If you click on the Find Solution button again before updating the numbers above <br/>"
+             + "then the algorithm will see if it can find another solution. <br/> <br/>";
+       } else {
+         
+          s =  "The closest we found was " + g_minDiff + " away. <br/>"
+               + g_closestNode.val() + " = " + soln + "<br/><br/>";
+         
+       }  
+       document.getElementById("cd_result").innerHTML = s;
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    function cdReadInputs(){
+      
+       for ( let i = 0 ; i < 6 ; i++){
+         
+          var elmID = "cdInput" + i;
+         
+          var res   = getCDInput(elmID)
+          
+          if (res[0])
+            g_cdInputs[i] = res[1];  
+          else 
+            return false;  
+                  
+       }   
+
+       g_cdTarget      = text2NumCD(document.getElementById("cdTarget").value);
+      
+       return true;
+
+    }
+    /////////////////////////////////////////////////////////////////////////////
+    function getCDInput( elmID){
+         
+        var s = document.getElementById(elmID).value;
+        
+        var v = text2NumCD(s)
+        
+        if ( Math.floor(v) == v ) 
+            return [true, v];
+        
+        else {
+             cdReportInputError(s);
+             return [false, v];
+        }        
+    }  
+    /////////////////////////////////////////////////////////////////////////////
+    function cdReportInputError(str){      
+         document.getElementById("cd_result").innerHTML = "Need positive integer inputs, can't have: " + str + "<br/><br/>";
+    }
+    /////////////////////////////////////////////////////////////////////////////
+    function cdSetRandomInputs(){
+       cdClearOutputs();
+      
+       // We'll have four input values between 1 and 10 
+       document.getElementById("cdInput0").value = 1 + Math.floor(Math.random() * 9.0);
+       document.getElementById("cdInput1").value = 1 + Math.floor(Math.random() * 9.0);
+       document.getElementById("cdInput2").value = 1 + Math.floor(Math.random() * 9.0);
+       document.getElementById("cdInput3").value = 1 + Math.floor(Math.random() * 9.0);
+
+       // And we'll have two input values picked from the set: [25, 50, 75, 100]
+       document.getElementById("cdInput4").value = 25 * ( 1 + Math.floor(Math.random() * 4.0));
+       document.getElementById("cdInput5").value = 25 * ( 1 + Math.floor(Math.random() * 4.0));
+
+       // we set the target to be an integer between 101 and 999
+       document.getElementById("cdTarget").value = 101 + Math.floor(Math.random() * 899.0);
+      
+      
+    }  
+    /////////////////////////////////////////////////////////////////////////////
+    function text2NumCD(str){
+       return Number(str.replace(/\,/g,''));
+    } 
+
+    /////////////////////////////////////////////////////////////////////////////////
+    
+  </script>
+
+</body>
+
+</html>
