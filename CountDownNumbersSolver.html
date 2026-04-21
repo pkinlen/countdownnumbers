@@ -5,7 +5,6 @@
        https://abitofmaths.blogspot.com/2026/04/countdown-solver.html
     -->
 
-
 <head>
   <meta charset="UTF-8">
   <title>Countdown Numbers Game</title>
@@ -61,13 +60,11 @@ Countdown Numbers Game</a>.<br/>
 
     <button id = "calculateBtn"       onclick = "calcCDSolution()"    > Find Solution     </button>
     <button id = "setRandomInputsBtn" onclick = "cdSetRandomInputs()" > New Random Inputs </button>
-
     <br/><br/>
 
   </div>
 
-  <div id="cd_result" ></div>
-  
+<div id="cd_result" ></div>  
   
 <div>
 If you press the New Random Inputs button above then a new set of random inputs will be generated.<br/>
@@ -133,7 +130,6 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
        constructor ( nodes, i, op, j){
 
           super(null);
-
           this.p_nodes = [];
           for ( let k = 0; k < nodes.getLen(); k++){
              if ( (k != i) && (k != j) )
@@ -157,9 +153,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
         constructor(val) {
            this.p_val = val;
            this.p_str = val.toString();
-
            this.p_isValid = this.checkIsValid(val);
-
            var diff = Math.abs(val - g_cdTarget);
           
            if( this.p_isValid && (diff < g_minDiff )){
@@ -168,21 +162,16 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
      
                if( diff == 0 ){
                    g_cdFoundSolution = true;
-
                }
-
                console.log("closest node: " + val);
            }    
-
         }
         /////////////////////////////////////////////////
         checkIsValid(val){ 
-
            if      (isNaN(val) )              return false;  
            else if (val == 0 )                return false;  
            else if (Math.floor(val) == val)   return true;
-           else                               return false;
-          
+           else                               return false;          
         }
         /////////////////////////////////////////////////
         val()            {  return this.p_val;     }
@@ -196,8 +185,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
         //    p_val     = 152
         //    p_str     = "(( 3 * 50 ) + 2)"
         //    p_isValid = true
-         
-      
+            
         constructor( N1, op, N2){
            super(0);
            ////////////////////////////////////////////////
@@ -247,8 +235,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
 
                if( diff < g_minDiff ){
                   g_minDiff     = diff;
-                  g_closestNode = this;
-                  
+                  g_closestNode = this;                  
                   console.log("closest node: " + this.p_str);
 
                   if( diff == 0 )  g_cdFoundSolution = true;
@@ -271,22 +258,15 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
     function calcCDSolution(){
 
        cdClearOutputs();
-
        console.log("In calcCDSolution(), about to read the inputs");
-      
-      
+            
        if(cdReadInputs()){
-
          cdShuffle(g_cdInputs);
-
          console.log("About to do the main calc");
-
          usingNodesFindSolution(new BaseNodeSet(g_cdInputs));
-
          cdWriteOutput();
          console.log("Finished doing the calcCDSolution, used " + g_cdCounter + " interations.");
        }
-
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     function cdShuffle(array) {
@@ -322,8 +302,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
               if ( g_cdFoundSolution){
                   console.log("found solution, number of iterations: " + g_cdCounter);
                   return;
-              }
-                
+              }               
               if ( nextSetOfNodes.isValid())  
                   usingNodesFindSolution(nextSetOfNodes);
            }
@@ -333,22 +312,18 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
     ///////////////////////////////////////////////////////////////////////////////////////////
     function cdWriteOutput(){
        var s;
-
        var soln;
          
        if (g_closestNode.getStr().substring(0,1) == "(" ) // we'll remove the outer brackets.
              soln = g_closestNode.getStr().substring(1, g_closestNode.getStr().length-1);
        else 
              soln = g_closestNode.getStr();
-      
-      
-       if ( g_cdFoundSolution ) {
-         
+           
+       if ( g_cdFoundSolution ) {         
          s =   "Found solution <br/>" + g_cdTarget + " = " + soln + "<br/> <br/>"
              + "If you click on the Find Solution button again before updating the numbers above <br/>"
              + "then the algorithm will see if it can find another solution. <br/> <br/>";
-       } else {
-         
+       } else {      
           s =  "The closest we found was " + g_minDiff + " away. <br/>"
                + g_closestNode.val() + " = " + soln + "<br/><br/>";
          
@@ -366,8 +341,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
           if (res[0])
             g_cdInputs[i] = res[1];  
           else 
-            return false;  
-                  
+            return false;                    
        }   
 
        var tar   = getCDInput("cdTarget");
@@ -382,13 +356,11 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
     /////////////////////////////////////////////////////////////////////////////
     function getCDInput( elmID){
          
-        var s = document.getElementById(elmID).value;
-        
+        var s = document.getElementById(elmID).value;        
         var v = text2NumCD(s)
         
         if ( Math.floor(v) == v ) 
-            return [true, v];
-        
+            return [true, v];        
         else {
              cdReportInputError(s);
              return [false, v];
@@ -414,18 +386,13 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
 
        // we set the target to be an integer between 101 and 999
        document.getElementById("cdTarget").value = 101 + Math.floor(Math.random() * 899.0);
-      
-      
+           
     }  
     /////////////////////////////////////////////////////////////////////////////
     function text2NumCD(str){
        return Number(str.replace(/\,/g,''));
     } 
-
-    /////////////////////////////////////////////////////////////////////////////////
-    
+    /////////////////////////////////////////////////////////////////////////////////    
   </script>
-
 </body>
-
 </html>
