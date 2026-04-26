@@ -85,7 +85,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
     // Global variables
     var g_cdInputs = [0, 1, 2, 3, 4, 5];
 
-    var g_operators = ["add", "sub", "mult", "div"];
+    var g_operators = [" + ", " - ",  " x ", " / "];
 
     var g_cdTarget;
     var g_closestNode;
@@ -188,42 +188,22 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
             
         constructor( N1, op, N2){
            super(0);
-           ////////////////////////////////////////////////
-           if ( op == "add" ) {
-                this.p_val = N1.val() + N2.val();
-                this.p_str = "(" + N1.getStr() + " + " + N2.getStr() + ")";
-           }
-           else if ( op == "mult" ) {
-                this.p_val = N1.val() * N2.val();
-                this.p_str = "(" + N1.getStr() + " x " + N2.getStr() + ")";
-           }
-           else if ( op == "sub" ) {
-                // we choose the order of the nodes to ensure a positive result
-                // 6 - 4 is fine, 4 - 6 is not
-                if (N1.val() > N2.val()){
-                   this.p_val = N1.val() - N2.val();
-                   this.p_str = "(" + N1.getStr() + " - " + N2.getStr() + ")";
 
-                } else {
-                   this.p_val = N2.val() - N1.val();
-                   this.p_str = "(" + N2.getStr() + " - " + N1.getStr() + ")";
-                }
+           var N_left, N_right;
+           // For addition and multiplication are communtitive so the order do not matter
+           // For division and subtraction, we will only get a valid result when (N_left >= N_right) 
+           if ( N1.val() >= N2.val()) {
+               N_left  = N1;
+               N_right = N2;
+           } else {
+               N_left  = N2;
+               N_right = N1;
            }
-           else if ( op == "div" ) {
-                // Only divisions that yield integers will be deemed to be valid
-                // If we have inputs 4 and 8, then 4 / 8 is rejected for being non integer
-                // 8 / 4 is accepted. Here we check that the left hand input is larger
-                // later we'll check if the result is an integer.
-                if (N1.val() > N2.val()){
-                   this.p_val = N1.val() / N2.val();
-                   this.p_str = "(" + N1.getStr() + " / " + N2.getStr() + ")";
 
-                } else {
-                   this.p_val = N2.val() / N1.val();
-                   this.p_str = "(" + N2.getStr() + " / " + N1.getStr() + ")";
-                }
-           }
-           ////////////////////////////////////////////////
+           this.p_val = evaluateNode(N_left.val(), op, N_right.val());
+           this.p_str = "(" + N_left.getStr() + op + N_right.getStr() + ")";
+
+           //console.log("have " + N_left.getStr() + op + N_right.getStr + " = "  + this.p_val);
 
            if ( !(N1.isValid()) || !(N2.isValid()))
                this.p_isValid = false;
@@ -244,14 +224,25 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
         }
     } 
     /////////////////////////////////////////////////////////////////////////////////
+    function evaluateNode(v_left, op, v_right){
+        if      ( op == " + " )  return v_left + v_right;
+        else if ( op == " - " )  return v_left - v_right;
+        else if ( op == " x " )  return v_left * v_right;
+        else if ( op == " / " )  return v_left / v_right;
+        else {
+            console.log("Do not recognize the operator");
+            return "<invalid operator>";
+        }
+    }
+    /////////////////////////////////////////////////////////////////////////////////
     function cdClearOutputs(){
       console.log("About to clear the outputs.");
 
       g_cdFoundSolution = false;
-      g_cdCounter     = 0;
-      g_minDiff       = 1e20;
+      g_cdCounter       = 0;
+      g_minDiff         = 1e20;
 
-      document.getElementById("cd_result").innerHTML = "If you wish you can change some of the numbers above. <br/>"
+      document.getElementById("cd_result").innerHTML =   "If you wish you can change some of the numbers above. <br/>"
                                                        + "Click on the Find Solution button to get the optimal solution.<br/> <br/>";
     }
     ///////////////////////////////////////////////////////////////////////////////////////////   
@@ -262,8 +253,11 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
             
        if(cdReadInputs()){
          cdShuffle(g_cdInputs);
+         cdShuffle(g_operators);
+
          console.log("About to do the main calc");
          usingNodesFindSolution(new BaseNodeSet(g_cdInputs));
+
          cdWriteOutput();
          console.log("Finished doing the calcCDSolution, used " + g_cdCounter + " interations.");
        }
@@ -287,7 +281,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
     // The folloowing function is a little complicated, even though it is not long.
     // It uses a triple nested for loop and it is recursive!
     // we pair off two nodes using an operator, then we get the next set of nodes, which has one
-    // fewer nodes. For example, we could pair off nodes with values 10 and 50 using the "add" operator
+    // fewer nodes. For example, we could pair off nodes with values 10 and 50 using the " + " operator
     // then those two nodes would be replaced with a node containing 60 = 10 + 50
     function usingNodesFindSolution(nodes){
         
@@ -346,7 +340,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
 
        var tar   = getCDInput("cdTarget");
        if (tar[0])
-	       g_cdTarget      = tar[1];
+         g_cdTarget      = tar[1];
        else 
            return false;
       
