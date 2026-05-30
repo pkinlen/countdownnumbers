@@ -356,7 +356,7 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
         var s = document.getElementById(elmID).value;        
         var v = text2NumCD(s)
         
-        if ( (Math.floor(v) == v) && (v != 0) ) 
+        if ( (Math.floor(v) == v) && (v > 0) ) 
             return [true, v];        
         else {
              cdReportInputError(s);
