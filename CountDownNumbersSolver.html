@@ -207,6 +207,8 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
 
            if ( !(N1.isValid()) || !(N2.isValid()))
                this.p_isValid = false;
+           else if ( N_left.val() == this.p_val) 
+               this.p_isValid = false; // we exclude cases when we multiply or divide by 1.             
            else 
                this.p_isValid = this.checkIsValid(this.p_val);
 
