@@ -350,12 +350,13 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
 
     }
     /////////////////////////////////////////////////////////////////////////////
+    // Returns an array of 2 elements, the first one is a flag indicating if the value is valid
     function getCDInput( elmID){
          
         var s = document.getElementById(elmID).value;        
         var v = text2NumCD(s)
         
-        if ( Math.floor(v) == v ) 
+        if ( (Math.floor(v) == v) && (v != 0) ) 
             return [true, v];        
         else {
              cdReportInputError(s);
