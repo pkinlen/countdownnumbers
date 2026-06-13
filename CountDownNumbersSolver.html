@@ -209,6 +209,8 @@ When you click on the "Find Solution" an algorithm writen in Javascript will try
                this.p_isValid = false;
            else if ( N_left.val() == this.p_val) 
                this.p_isValid = false; // we exclude cases when we multiply or divide by 1.             
+           else if ( N_right.val() == this.p_val) 
+               this.p_isValid = false; // we exclude cases such as (10 - 5) = 5, since it makes no progress.
            else 
                this.p_isValid = this.checkIsValid(this.p_val);
 
